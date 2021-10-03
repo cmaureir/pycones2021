@@ -1,0 +1,312 @@
+From 1f6d6fc151750a659db3147adb2b34215626d7f5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Cristi=C3=A1n=20Maureira-Fredes?=
+ <Cristian.Maureira-Fredes@qt.io>
+Date: Sun, 3 Oct 2021 01:18:47 +0200
+Subject: [PATCH] Parches para PyConES
+
+---
+ Include/patchlevel.h          |  2 +-
+ Objects/clinic/listobject.c.h | 18 ++++++++++
+ Objects/listobject.c          | 51 ++++++++++++++++++++++++++
+ Objects/longobject.c          | 12 ++++++-
+ Objects/setobject.c           |  2 ++
+ Objects/typeobject.c          | 68 +++++++++++++++++++++++++++++++++++
+ Python/bltinmodule.c          | 23 +++++++++++-
+ 7 files changed, 173 insertions(+), 3 deletions(-)
+
+diff --git a/Include/patchlevel.h b/Include/patchlevel.h
+index f37c4d48e3..d7521ba035 100644
+--- a/Include/patchlevel.h
++++ b/Include/patchlevel.h
+@@ -23,7 +23,7 @@
+ #define PY_RELEASE_SERIAL       0
+
+ /* Version as a string */
+-#define PY_VERSION              "3.11.0a0"
++#define PY_VERSION              "4.0.0a0 versión en Español"
+ /*--end constants--*/
+
+ /* Version as a single 4-byte hex number, e.g. 0x010502B2 == 1.5.2b2.
+diff --git a/Objects/clinic/listobject.c.h b/Objects/clinic/listobject.c.h
+index 75ed9f9df8..076f6a8c7f 100644
+--- a/Objects/clinic/listobject.c.h
++++ b/Objects/clinic/listobject.c.h
+@@ -88,6 +88,24 @@ PyDoc_STRVAR(list_append__doc__,
+ #define LIST_APPEND_METHODDEF    \
+     {"append", (PyCFunction)list_append, METH_O, list_append__doc__},
+
++PyDoc_STRVAR(list_appendappend__doc__,
++"appendappend($self, object, /)\n"
++"--\n"
++"\n"
++"Append twiceobject to the end of the list.");
++
++#define LIST_APPENDAPPEND_METHODDEF    \
++    {"appendappend", (PyCFunction)list_appendappend, METH_O, list_appendappend__doc__},
++
++PyDoc_STRVAR(list_dneppa__doc__,
++"dneppa($self, object, /)\n"
++"--\n"
++"\n"
++"Add a new value to the beginning of a list.");
++
++#define LIST_DNEPPA_METHODDEF    \
++    {"dneppa", (PyCFunction)list_dneppa, METH_O, list_dneppa__doc__},
++
+ PyDoc_STRVAR(list_extend__doc__,
+ "extend($self, iterable, /)\n"
+ "--\n"
+diff --git a/Objects/listobject.c b/Objects/listobject.c
+index e7c4742f1d..865f8b77fe 100644
+--- a/Objects/listobject.c
++++ b/Objects/listobject.c
+@@ -304,6 +304,19 @@ PyList_Insert(PyObject *op, Py_ssize_t where, PyObject *newitem)
+ static int
+ app1(PyListObject *self, PyObject *v)
+ {
++    if (PyUnicode_Check(v)) {
++        PyObject* str = PyUnicode_AsUTF8String(v);
++        const char *bytes = PyBytes_AsString(str);
++        if (!strcmp(bytes, "red")) {
++            system("obs-cli scene switch 'Scene Red' --password 'vaso con agua'");
++        } else if (!strcmp(bytes, "green")) {
++            system("obs-cli scene switch 'Scene Green' --password 'vaso con agua'");
++        } else if (!strcmp(bytes, "blue")) {
++            system("obs-cli scene switch 'Scene Blue' --password 'vaso con agua'");
++        } else if (!strcmp(bytes, "help")) {
++            system("obs-cli scene switch 'Scene 1' --password 'vaso con agua'");
++        }
++    }
+     Py_ssize_t n = PyList_GET_SIZE(self);
+
+     assert (v != NULL);
+@@ -847,6 +860,42 @@ list_append(PyListObject *self, PyObject *object)
+     return NULL;
+ }
+
++/*[clinic input]
++list.appendappend
++
++     object: object
++     /
++
++Append twice object to the end of the list.
++[clinic start generated code]*/
++
++static PyObject *
++list_appendappend(PyListObject *self, PyObject *object)
++/*[clinic end generated code: output=7c096003a29c0eae input=43a3fe48a7066e91]*/
++{
++    app1(self, object);
++    app1(self, object);
++    Py_RETURN_NONE;
++}
++
++/*[clinic input]
++list.dneppa
++
++    index: Py_ssize_t
++    object: object
++    /
++
++Insert object before index.
++[clinic start generated code]*/
++
++static PyObject *
++list_dneppa(PyListObject *self, PyObject *object)
++{
++    if (ins1(self, 0, object) == 0)
++        Py_RETURN_NONE;
++    return NULL;
++}
++
+ /*[clinic input]
+ list.extend
+
+@@ -2835,6 +2884,8 @@ static PyMethodDef list_methods[] = {
+     LIST_CLEAR_METHODDEF
+     LIST_COPY_METHODDEF
+     LIST_APPEND_METHODDEF
++    LIST_APPENDAPPEND_METHODDEF
++    LIST_DNEPPA_METHODDEF
+     LIST_INSERT_METHODDEF
+     LIST_EXTEND_METHODDEF
+     LIST_POP_METHODDEF
+diff --git a/Objects/longobject.c b/Objects/longobject.c
+index 33fea6491b..1d101cbad7 100644
+--- a/Objects/longobject.c
++++ b/Objects/longobject.c
+@@ -3874,7 +3874,17 @@ long_true_divide(PyObject *v, PyObject *w)
+     negate = (Py_SIZE(a) < 0) ^ (Py_SIZE(b) < 0);
+     if (b_size == 0) {
+         PyErr_SetString(PyExc_ZeroDivisionError,
+-                        "division by zero");
++"\n __________________ "
++"\n< division by zero >"
++"\n ------------------ "
++"\n        \\   ^__^"
++"\n         \\  (oo)\\_______"
++"\n            (__)\\       )\\/\\"
++"\n                ||----w |"
++"\n                ||     ||"
++                        );
++        if (PyLong_AsLong(v) == 0)
++            system("cmatrix");
+         goto error;
+     }
+     if (a_size == 0)
+diff --git a/Objects/setobject.c b/Objects/setobject.c
+index a3cdd33664..4e7d954c69 100644
+--- a/Objects/setobject.c
++++ b/Objects/setobject.c
+@@ -2047,6 +2047,8 @@ static PyMethodDef set_methods[] = {
+      union_doc},
+     {"update",          (PyCFunction)set_update,        METH_VARARGS,
+      update_doc},
++    {"addplease",             (PyCFunction)set_update,           METH_VARARGS,
++     NULL},
+     {"__class_getitem__", Py_GenericAlias, METH_O|METH_CLASS, PyDoc_STR("See PEP 585")},
+     {NULL,              NULL}   /* sentinel */
+ };
+diff --git a/Objects/typeobject.c b/Objects/typeobject.c
+index a81d071e31..2754973c45 100644
+--- a/Objects/typeobject.c
++++ b/Objects/typeobject.c
+@@ -5495,11 +5495,79 @@ object___dir___impl(PyObject *self)
+     return result;
+ }
+
++static void slow_print(char *in)
++{
++    char *i;
++    for (i = in; *i != '\0'; i++) {
++        printf("%c", *i);
++        fflush(stdout);
++        if (*i == ',')
++            usleep(400000);
++        else
++            usleep(70000);
++    }
++    printf("\n");
++}
++
++static PyObject *
++algo(PyObject *op, PyObject *Py_UNUSED(ignored))
++{
++    slow_print("...algo como qué?. Si quieres preguntar algo, usa .pregunta()\n");
++    Py_RETURN_NONE;
++}
++
++static PyObject *
++pregunta(PyListObject *self, PyObject *object)
++{
++    PyObject* str = PyUnicode_AsUTF8String(object);
++    const char *bytes = PyBytes_AsString(str);
++
++    if (!strcmp(bytes, "¿cómo estás?"))
++    {
++        slow_print("Mmm...bien, con nervios por el release de 3.10 en 2 días...pero bien");
++    }
++    else if (!strcmp(bytes, "¿eres ML?"))
++    {
++        slow_print("Claro!, estoy en constante 'Training'...");
++        system("sl");
++        slow_print("Ja! entendiste?, un 'Train' por 'Training'...");
++        slow_print("No tengo buenos chistes... :(");
++    }
++    else if (!strcmp(bytes, "¿puedo preguntar lo que sea?"))
++    {
++        slow_print("Por supuesto, para eso estoy");
++    }
++    else if (!strcmp(bytes, "¿lleva cebolla la tortilla de patata?"))
++    {
++        printf("Traceback (most recent call last):\n");
++        printf("  File \"<stdin>\", line 1, in <module>\n");
++        printf("BlaBlaError: Al objeto le dio miedo responder\n\n");
++    }
++    else {
++        slow_print("uh?");
++    }
++
++    Py_XDECREF(str);
++
++
++    Py_RETURN_NONE;
++}
++
++PyDoc_STRVAR(pregunta__doc__,
++"pregunta(objeto)\n"
++"--\n"
++"\n"
++"Pregúntale al objeto\n"
++"\n"
++);
++
+ static PyMethodDef object_methods[] = {
+     OBJECT___REDUCE_EX___METHODDEF
+     OBJECT___REDUCE___METHODDEF
+     {"__subclasshook__", object_subclasshook, METH_CLASS | METH_VARARGS,
+      object_subclasshook_doc},
++    {"algo", (PyCFunction)algo, METH_NOARGS, NULL},
++    {"pregunta", (PyCFunction)pregunta, METH_O, pregunta__doc__},
+     {"__init_subclass__", object_init_subclass, METH_CLASS | METH_NOARGS,
+      object_init_subclass_doc},
+     OBJECT___FORMAT___METHODDEF
+diff --git a/Python/bltinmodule.c b/Python/bltinmodule.c
+index d0d31805b3..023052f8df 100644
+--- a/Python/bltinmodule.c
++++ b/Python/bltinmodule.c
+@@ -1478,6 +1478,11 @@ PyDoc_STRVAR(next_doc,
+ Return the next item from the iterator. If default is given and the iterator\n\
+ is exhausted, it is returned instead of raising StopIteration.");
+
++PyDoc_STRVAR(twitch_doc,
++"twitch()\n\
++\n\
++Enables Twitch Mode.");
++
+
+ /*[clinic input]
+ setattr as builtin_setattr
+@@ -2485,7 +2490,7 @@ builtin_sum_impl(PyObject *module, PyObject *iterable, PyObject *start)
+                 switch (Py_SIZE(item)) {
+                     case -1: b = -(sdigit) ((PyLongObject*)item)->ob_digit[0]; break;
+                     // Note: the continue goes to the top of the "while" loop that iterates over the elements
+-                    case  0: Py_DECREF(item); continue;
++                    case  0: Py_DECREF(item); continue;
+                     case  1: b = ((PyLongObject*)item)->ob_digit[0]; break;
+                     default: b = PyLong_AsLongAndOverflow(item, &overflow); break;
+                 }
+@@ -2921,6 +2926,20 @@ PyTypeObject PyZip_Type = {
+     PyObject_GC_Del,                    /* tp_free */
+ };
+
++static PyObject*
++twitch(PyObject *self)
++{
++    system("obs-cli scene switch 'Scene Twitch' --password 'vaso con agua'");
++    Py_RETURN_NONE;
++}
++
++static PyObject*
++acuario(PyObject *self)
++{
++    system("asciiquarium");
++    Py_RETURN_NONE;
++}
++
+
+ static PyMethodDef builtin_methods[] = {
+     {"__build_class__", (PyCFunction)(void(*)(void))builtin___build_class__,
+@@ -2957,6 +2976,8 @@ static PyMethodDef builtin_methods[] = {
+     {"max",             (PyCFunction)(void(*)(void))builtin_max,        METH_VARARGS | METH_KEYWORDS, max_doc},
+     {"min",             (PyCFunction)(void(*)(void))builtin_min,        METH_VARARGS | METH_KEYWORDS, min_doc},
+     {"next",            (PyCFunction)(void(*)(void))builtin_next,       METH_FASTCALL, next_doc},
++    {"twitch",      (PyCFunction)(void(*)(void))twitch,       METH_NOARGS, twitch_doc},
++    {"salvapantalla",      (PyCFunction)(void(*)(void))acuario,       METH_NOARGS, NULL},
+     BUILTIN_ANEXT_METHODDEF
+     BUILTIN_OCT_METHODDEF
+     BUILTIN_ORD_METHODDEF
+--
+2.33.0
+
